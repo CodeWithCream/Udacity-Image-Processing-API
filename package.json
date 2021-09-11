@@ -6,7 +6,9 @@
   "scripts": {
     "prettier": "prettier --config .prettierrc \"src/**/*.js\" --write",
     "lint:fix": "eslint --fix --ext .js,.jsx .",
-    "build": "npx tsc"
+    "build": "npx tsc",
+    "start:dev": "nodemon src/index.ts",
+    "start:prod": "nodemon build/index.js"
   },
   "repository": {
     "type": "git",
@@ -19,10 +21,17 @@
   },
   "homepage": "https://github.com/CodeWithCream/Udacity-Image-Processing-API#readme",
   "devDependencies": {
+    "@types/node": "^16.9.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.12",
     "prettier": "^2.4.0",
+    "ts-node": "^10.2.1",
     "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "@types/express": "^4.17.13",
+    "express": "^4.17.1"
   }
 }
