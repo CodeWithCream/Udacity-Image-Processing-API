@@ -4,8 +4,9 @@
   "description": "Udacity Full Stack Javascript Developer Nanodegree Program - Image processing API project",
   "main": "index.js",
   "scripts": {
-    "prettier": "prettier --config .prettierrc \"src/**/*.js\" --write", 
-    "lint:fix":"eslint --fix --ext .js,.jsx ."
+    "prettier": "prettier --config .prettierrc \"src/**/*.js\" --write",
+    "lint:fix": "eslint --fix --ext .js,.jsx .",
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "prettier": "^2.4.0"
+    "prettier": "^2.4.0",
+    "typescript": "^4.4.3"
   }
 }
