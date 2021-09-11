@@ -1,0 +1,22 @@
+{
+  "name": "image-resize-api",
+  "version": "1.0.0",
+  "description": "Udacity Full Stack Javascript Developer Nanodegree Program - Image processing API project",
+  "main": "index.js",
+  "scripts": {
+    "prettier" : "prettier --config .prettierrc \"src/**/*.js\" --write"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CodeWithCream/Udacity-Image-Processing-API.git"
+  },
+  "author": "Andrea Knez Karacic",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CodeWithCream/Udacity-Image-Processing-API/issues"
+  },
+  "homepage": "https://github.com/CodeWithCream/Udacity-Image-Processing-API#readme",
+  "devDependencies": {
+    "prettier": "^2.4.0"
+  }
+}
