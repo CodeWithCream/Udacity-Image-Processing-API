@@ -3,7 +3,7 @@ import express from 'express';
 const routes = express.Router();
 
 routes.get('/', (req, res) => {
-    res.send("get image");
+  res.send('get image');
 });
 
 export default routes;
