@@ -10,7 +10,10 @@
     "build": "npx tsc",
     "start:dev": "nodemon src/index.ts",
     "start:prod": "nodemon build/index.js",
-    "test": "jasmine"
+    "test": "jasmine", 
+    "build-and-test": "npm run lint:fix && npm rum build && npm run test",
+    "build-aand-run-dev" : "npm run lint:fix && npm rum build && npm run start:dev",
+    "build-aand-run-prod" : "npm run lint:fix && npm rum build && npm run start:prod"
   },
   "repository": {
     "type": "git",

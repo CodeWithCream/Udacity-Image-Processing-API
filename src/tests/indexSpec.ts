@@ -1,3 +1,4 @@
+import path from 'path';
 import supertest from 'supertest';
 import app from '../index';
 
@@ -7,9 +8,9 @@ const ok = 200;
 const badRequest = 400;
 const notFound = 404;
 
-const defaultImageName = 'image';
-const defaultWidth = 100;
-const defaultHeight = 100;
+const defaultImageName = 'test';
+const defaultWidth = 10;
+const defaultHeight = 10;
 
 describe('Test api responses', () => {
   describe('Test get images', () => {
@@ -40,7 +41,7 @@ describe('Test api responses', () => {
     });
 
     it('calls get images with filename and extension', async () => {
-      const imageName = 'image.png';
+      const imageName = 'test.png';
 
       const response = await request.get(
         `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
@@ -49,14 +50,14 @@ describe('Test api responses', () => {
       expect(response.status).toBe(ok);
     });
 
-    it('calls get images with filename and invalid extension', async () => {
-      const imageName = 'image.xyz';
+    it('calls get images with invalid filename', async () => {
+      const imageName = '-image';
 
       const response = await request.get(
         `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
       );
 
-      expect(response.status).toBe(notFound);
+      expect(response.status).toBe(badRequest);
     });
 
     it('calls get images with invalid filename', async () => {
@@ -138,6 +139,29 @@ describe('Test api responses', () => {
       );
 
       expect(response.status).toBe(badRequest);
+    });
+
+    it('calls get images with non existing image', async () => {
+      const imageName = 'test1';
+      const response = await request.get(
+        `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
+      );
+
+      expect(response.status).toBe(notFound);
+    });
+
+    it('calls get images with existing image', async () => {
+      const imageName = 'test';
+      const extension = '.png';
+      await request.get(
+        `/api/images?imagename=${imageName}.jpg&width=${defaultWidth}&height=${defaultHeight}`
+      );
+
+      expect(
+        path.resolve(
+          `${__dirname}/../../images/thumb/${imageName}_${defaultWidth}_${defaultHeight}.${extension}`
+        )
+      ).toBeTruthy();
     });
   });
 });
