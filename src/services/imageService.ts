@@ -13,22 +13,7 @@ export class ImageService {
       `name:${imageName}, widht:${width}, height:${height}, ${typeof width}`
     );
 
-    if (!imageName) {
-      throw new ArgumentError(`Image name cannot be empty`);
-    }
-    if (width <= 0) {
-      throw new ArgumentError(`Width has to be greater than 0`);
-    }
-    if (height <= 0) {
-      throw new ArgumentError(`Hight has to be greater than 0`);
-    }
-    if (!Number.isInteger(width) || !Number.isInteger(height)) {
-      throw new ArgumentError(`Width and height must be of type integer`);
-    }
-    const fileRegex = new RegExp('^[0-9a-zA-Z ... ]+$');
-    if (!fileRegex.test(imageName)) {
-      throw new ArgumentError(`Image name '${imageName}' is not valid`);
-    }
+    this.checkArguments(imageName, width, height);
 
     const imagePath = path.parse(imageName);
     const imageExtension = imagePath.ext
@@ -44,6 +29,26 @@ export class ImageService {
     );
     console.log(`Image ${fullImagePath} prepared.`);
     return fullImagePath;
+  }
+
+  private checkArguments(imageName: string, width: number, height: number) {
+    if (!imageName) {
+      throw new ArgumentError(`Image name cannot be empty`);
+    }
+    if (width <= 0) {
+      throw new ArgumentError(`Width has to be greater than 0`);
+    }
+    if (height <= 0) {
+      throw new ArgumentError(`Hight has to be greater than 0`);
+    }
+    if (!Number.isInteger(width) || !Number.isInteger(height)) {
+      throw new ArgumentError(`Width and height must be of type integer`);
+    }
+    const fileRegex = new RegExp(/^[-\w^&'@{}[\],$=!#().%+~ ]+$/);
+    console.log(imageName);
+    if (!fileRegex.test(imageName)) {
+      throw new ArgumentError(`Image name '${imageName}' is not valid`);
+    }
   }
 }
 

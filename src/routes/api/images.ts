@@ -18,7 +18,7 @@ routes.get('/', (req, res) => {
 
     res.sendFile(response);
   } catch (e) {
-    console.log("Error details: " + e);
+    console.log(e);
     switch (true) {
       case e instanceof ArgumentError:
         return res.status(400).send((e as Error).message);

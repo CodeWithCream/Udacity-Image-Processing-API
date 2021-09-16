@@ -4,16 +4,16 @@ import app from '../index';
 
 const request = supertest(app);
 
-const ok = 200;
-const badRequest = 400;
-const notFound = 404;
-
-const defaultImageName = 'test';
-const defaultWidth = 10;
-const defaultHeight = 10;
-
 describe('Test api responses', () => {
   describe('Test get images', () => {
+    const ok = 200;
+    const badRequest = 400;
+    const notFound = 404;
+
+    const defaultImageName = 'test_save';
+    const defaultWidth = 10;
+    const defaultHeight = 10;
+
     it('calls get images with valid parameteres', async () => {
       const response = await request.get(
         `/api/images?imagename=${defaultImageName}&width=${defaultWidth}&height=${defaultHeight}`
@@ -41,7 +41,7 @@ describe('Test api responses', () => {
     });
 
     it('calls get images with filename and extension', async () => {
-      const imageName = 'test.png';
+      const imageName = 'test_save.png';
 
       const response = await request.get(
         `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
@@ -51,17 +51,7 @@ describe('Test api responses', () => {
     });
 
     it('calls get images with invalid filename', async () => {
-      const imageName = '-image';
-
-      const response = await request.get(
-        `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
-      );
-
-      expect(response.status).toBe(badRequest);
-    });
-
-    it('calls get images with invalid filename', async () => {
-      const imageName = '_image';
+      const imageName = '>||image';
 
       const response = await request.get(
         `/api/images?imagename=${imageName}&width=${defaultWidth}&height=${defaultHeight}`
