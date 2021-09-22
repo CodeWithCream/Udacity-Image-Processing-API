@@ -1,11 +1,16 @@
-import fs from 'fs';
+/* eslint-disable no-async-promise-executor */
+import { promises as fsPromises, constants } from 'fs';
 import path from 'path';
-import { ArgumentError } from '../../exceptions/ArgumentError';
-import { imageServiceSingleton } from '../../services/imageService';
+import { NotFoundError } from '../../exceptions/NotFoundError';
+import { ImageService } from '../../services/imageService';
+
+const imagesDirectoryPath = `${__dirname}/../../../test_images`;
+const imageServiceImpl = new ImageService(imagesDirectoryPath);
 
 describe('Test image service', () => {
   describe('Test image processing', () => {
-    const defaultImageName = 'test_delete';
+    const saveImageName = 'test_save';
+    const copyImageName = 'test_copy';
     const defaultWidth = 10;
     const defaultHeight = 10;
     const defaultExtension = '.png';
@@ -17,110 +22,145 @@ describe('Test image service', () => {
       extension: string
     ): string {
       return path.resolve(
-        `${__dirname}/../../../images/thumb/${imageName}_${width}_${height}${extension}`
+        `${imagesDirectoryPath}/thumb/${imageName}_${width}_${height}${extension}`
       );
     }
 
-    function fileExists(filePath: string): boolean {
-      let exists = false;
-
-      fs.access(filePath, fs.constants.F_OK, (error) => {
-        if (!error) {
-          exists = true;
+    async function fileExists(filePath: string): Promise<boolean> {
+      return new Promise(async (resolve) => {
+        try {
+          await fsPromises.access(filePath, constants.F_OK);
+          return resolve(true);
+        } catch (error) {
+          return resolve(false);
         }
-        exists = false;
       });
-
-      return exists;
     }
 
-    beforeEach(() => {
-      //delete created file if exists from the previous test
-      const imagePath = getImageFilePath(
-        defaultImageName,
+    async function deleteFiles(directoryPath: string): Promise<void> {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const files = await fsPromises.readdir(directoryPath);
+          let success = true;
+
+          files.forEach(async (file) => {
+            const filePath = path.resolve(directoryPath, file);
+            console.log(`Deleting file ${filePath}`);
+            try {
+              await fsPromises.unlink(filePath);
+              console.log(`${filePath} deleted.`);
+            } catch (error) {
+              console.log(error);
+              success = false;
+            }
+          });
+
+          return success ? resolve() : reject();
+        } catch (error) {
+          console.log(error);
+          reject(error);
+        }
+      });
+    }
+
+    beforeEach(async () => {
+      await deleteFiles(path.resolve(imagesDirectoryPath, 'thumb'));
+    });
+
+    it('calls process image with existing image and valid size', async () => {
+      console.log('test');
+      const imagePath = await imageServiceImpl.processImage(
+        saveImageName,
+        defaultWidth,
+        defaultHeight
+      );
+
+      console.log('Returned image:' + imagePath);
+
+      const expectedPath = getImageFilePath(
+        saveImageName,
         defaultWidth,
         defaultHeight,
         defaultExtension
       );
 
-      if (fileExists(imagePath)) {
-        fs.unlinkSync(imagePath);
-      }
+      expect(imagePath).toEqual(expectedPath);
+
+      expect(await fileExists(imagePath))
+        .withContext(`File ${expectedPath} should exist.`)
+        .toBeTrue();
     });
 
-    it('calls process image with existing image and valid size', () => {
-      const imagePath = imageServiceSingleton.processImage(
-        defaultImageName,
-        defaultWidth,
-        defaultHeight
-      );
-
-      expect(
-        imagePath ===
-          getImageFilePath(
-            defaultImageName,
-            defaultWidth,
-            defaultHeight,
-            defaultExtension
-          ) && fileExists(imagePath)
-      ).toBeTrue();
-    });
-
-    it('calls process image with non existing image', () => {
+    it('calls process image with non existing image', async () => {
       const nonExistingImageName = 'non_existing_image';
 
-      expect(() => {
-        imageServiceSingleton.processImage(
+      await expectAsync(
+        imageServiceImpl.processImage(
           nonExistingImageName,
           defaultWidth,
           defaultHeight
-        );
-      }).toThrowError('NotFoundError');
+        )
+      ).toBeRejectedWith(
+        new NotFoundError(`Image ${nonExistingImageName} not found`)
+      );
     });
 
-    it('calls process image with extension when two images of the same name exist', () => {
-      const imageName = 'test_copy';
+    it('calls process image with extension when two images of the same name exist', async () => {
       const extension = '.png';
-      const fullImageName = imageName + extension;
+      const fullImageName = copyImageName + extension;
 
-      const imagePath = imageServiceSingleton.processImage(
+      const imagePath = await imageServiceImpl.processImage(
         fullImageName,
         defaultWidth,
         defaultHeight
       );
 
-      expect(
-        imagePath ===
-          getImageFilePath(imageName, defaultWidth, defaultHeight, extension) &&
-          fileExists(imagePath)
-      ).toBeTrue();
+      const expectedPath = getImageFilePath(
+        copyImageName,
+        defaultWidth,
+        defaultHeight,
+        extension
+      );
+
+      expect(imagePath).toEqual(expectedPath);
+
+      expect(await fileExists(imagePath))
+        .withContext(`File ${expectedPath} should exist.`)
+        .toBeTrue();
+
+      console.log('2');
     });
 
-    it('calls process image when two images of the same name exist', () => {
-      const imageName = 'test_copy';
-
-      const imagePath = imageServiceSingleton.processImage(
-        imageName,
+    it('calls process image when two images of the same name exist', async () => {
+      const imagePath = await imageServiceImpl.processImage(
+        copyImageName,
         defaultWidth,
         defaultHeight
       );
 
-      expect(
-        imagePath ===
-          getImageFilePath(imageName, defaultWidth, defaultHeight, '.jpg') &&
-          fileExists(imagePath)
-      ).toBeTrue();
+      const expectedPath = getImageFilePath(
+        copyImageName,
+        defaultWidth,
+        defaultHeight,
+        '.jpg'
+      ); //first one by name
+
+      expect(imagePath).toEqual(expectedPath);
+
+      expect(await fileExists(imagePath))
+        .withContext(`File ${expectedPath} should exist.`)
+        .toBeTrue();
     });
 
-    it('calls process image twice', () => {
-      const imagePathFirst = imageServiceSingleton.processImage(
-        defaultImageName,
+    it('calls process image twice', async () => {
+      const imagePathFirst = await imageServiceImpl.processImage(
+        saveImageName,
         defaultWidth,
         defaultHeight
       );
 
-      const imagePathSecond = imageServiceSingleton.processImage(
-        defaultImageName,
+      const imagePathSecond = await imageServiceImpl.processImage(
+        saveImageName,
         defaultWidth,
         defaultHeight
       );
@@ -128,24 +168,28 @@ describe('Test image service', () => {
       expect(imagePathSecond).toEqual(imagePathFirst);
     });
 
-    it('calls process image with size larger than original', () => {
+    it('calls process image with size larger than original', async () => {
       const largeWidth = 1000;
       const largeHeight = 1000;
 
-      const imagePath = imageServiceSingleton.processImage(
-        defaultImageName,
+      const imagePath = await imageServiceImpl.processImage(
+        saveImageName,
         largeWidth,
         largeHeight
       );
-      expect(
-        imagePath ===
-          getImageFilePath(
-            defaultImageName,
-            largeWidth,
-            largeHeight,
-            defaultExtension
-          ) && fileExists(imagePath)
-      ).toBeTrue();
+
+      const expectedPath = getImageFilePath(
+        saveImageName,
+        largeWidth,
+        largeHeight,
+        defaultExtension
+      );
+
+      expect(imagePath).toEqual(expectedPath);
+
+      expect(await fileExists(imagePath))
+        .withContext(`File ${expectedPath} should exist.`)
+        .toBeTrue();
     });
   });
 });
