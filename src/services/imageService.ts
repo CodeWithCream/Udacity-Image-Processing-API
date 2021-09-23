@@ -28,51 +28,19 @@ export class ImageService {
 
         this.checkArguments(imageName, width, height);
 
-        const imagePath: path.ParsedPath = path.parse(imageName);
-        const imageNameWithoutExtension: string = imagePath.name;
-        let imageExtension: string = imagePath.ext;
+        const imageToProcess = await this.getImageToProcess(imageName);
+        console.log('Image to process:', imageToProcess);
 
-        const existingImages: string[] = await this.getDirectoryFilesOfName(
-          `${this.imagesDirectoryPath}/${this.fullDirectoryName}`,
-          imageNameWithoutExtension,
-          imageExtension
-        );
-
-        if (existingImages.length == 0) {
-          console.log(`Image ${imageName} does not exist.`);
-          throw new NotFoundError(`Image ${imageName} not found`);
-        }
-
-        const imageToProcess: string = existingImages[0];
-        imageExtension = path.parse(imageToProcess).ext;
-        const fullImagePath: string = path.resolve(
-          `${this.imagesDirectoryPath}/${this.fullDirectoryName}/${imageToProcess}`
-        );
-
-        console.log('Full image Path', fullImagePath);
-
-        const processedImagePath: string = path.resolve(
-          `${this.imagesDirectoryPath}/${this.thumbDirectoryName}/${imagePath.name}_${width}_${height}${imageExtension}`
-        );
-
-        console.log('Processed image Path', processedImagePath);
-
-        if (await this.fileExists(processedImagePath)) {
-          console.log(`Image ${processedImagePath} exists.`);
-          console.log(`Image ${processedImagePath} returned.`);
-          return resolve(processedImagePath);
-        }
-
-        //create new image
-        await this.createFileThumb(
-          fullImagePath,
+        const processedImagePath = await this.createImageThumb(
+          imageToProcess,
           width,
-          height,
-          processedImagePath
+          height
         );
         console.log(`Image ${processedImagePath} returned.`);
+
         return resolve(processedImagePath);
       } catch (error) {
+        console.log(error);
         reject(error);
       }
     });
@@ -110,6 +78,69 @@ export class ImageService {
     });
   }
 
+  private async getImageToProcess(imageName: string): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      const imagePath: path.ParsedPath = path.parse(imageName);
+      const imageNameWithoutExtension: string = imagePath.name;
+      let imageExtension: string = imagePath.ext;
+
+      const existingImages: string[] = await this.getDirectoryFilesOfName(
+        `${this.imagesDirectoryPath}/${this.fullDirectoryName}`,
+        imageNameWithoutExtension,
+        imageExtension
+      );
+
+      if (existingImages.length == 0) {
+        console.log(`Image ${imageName} does not exist.`);
+        reject(new NotFoundError(`Image ${imageName} not found`));
+      } else {
+        const imageToProcess: string = existingImages[0];
+        imageExtension = path.parse(imageToProcess).ext;
+        const fullImagePath: string = path.resolve(
+          `${this.imagesDirectoryPath}/${this.fullDirectoryName}/${imageToProcess}`
+        );
+
+        return resolve(fullImagePath);
+      }
+    });
+  }
+
+  private async createImageThumb(
+    imagePath: string,
+    width: number,
+    height: number
+  ): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const parsedImagePath = path.parse(imagePath);
+        const imageNameWithoutExtension = parsedImagePath.name;
+        const imageExtension = parsedImagePath.ext;
+
+        const processedImagePath: string = path.resolve(
+          `${this.imagesDirectoryPath}/${this.thumbDirectoryName}/${imageNameWithoutExtension}_${width}_${height}${imageExtension}`
+        );
+
+        console.log('Processed image path:', processedImagePath);
+
+        if (await this.fileExists(processedImagePath)) {
+          console.log(`Image ${processedImagePath} exists.`);
+          return resolve(processedImagePath);
+        }
+
+        //create new image
+        await this.createFileThumb(
+          imagePath,
+          width,
+          height,
+          processedImagePath
+        );
+        resolve(processedImagePath);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   private async getDirectoryFilesOfName(
     directoryPath: string,
     name: string,
@@ -143,7 +174,6 @@ export class ImageService {
     return new Promise(async (resolve, reject) => {
       try {
         console.log(`Creating ${processedImagePath}.`);
-        //await fsPromises.copyFile(imagePath, processedImagePath);
         await sharp(imagePath).resize(width, height).toFile(processedImagePath);
         console.log(`File ${processedImagePath} created.`);
         return resolve();

@@ -1,4 +1,3 @@
-import path from 'path';
 import supertest from 'supertest';
 import app from '../index';
 
