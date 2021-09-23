@@ -141,17 +141,12 @@ describe('Test api responses', () => {
     });
 
     it('calls get images with existing image', async () => {
-      const imageName = 'test';
-      const extension = '.png';
-      await request.get(
-        `/api/images?imagename=${imageName}.jpg&width=${defaultWidth}&height=${defaultHeight}`
+      const response = await request.get(
+        `/api/images?imagename=${defaultImageName}&width=${defaultWidth}&height=${defaultHeight}`
       );
 
-      expect(
-        path.resolve(
-          `${__dirname}/../../images/thumb/${imageName}_${defaultWidth}_${defaultHeight}.${extension}`
-        )
-      ).toBeTruthy();
+      expect(response.status).toBe(ok);
+      expect(response.body).toBeTruthy(); //not empty
     });
   });
 });

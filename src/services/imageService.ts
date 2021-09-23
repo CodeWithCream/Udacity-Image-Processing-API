@@ -3,11 +3,11 @@ import path from 'path';
 import { NotFoundError } from '../exceptions/NotFoundError';
 import { ArgumentError } from '../exceptions/ArgumentError';
 import { promises as fsPromises, constants } from 'fs';
+import sharp from 'sharp';
 
 export class ImageService {
-  defaultImageExtension = '.png';
-  fullDirectoryName = 'full';
-  thumbDirectoryName = 'thumb';
+  readonly fullDirectoryName = 'full';
+  readonly thumbDirectoryName = 'thumb';
   imagesDirectoryPath: string;
 
   constructor(imagesDirectoryPath: string) {
@@ -38,8 +38,6 @@ export class ImageService {
           imageExtension
         );
 
-        console.log(existingImages);
-
         if (existingImages.length == 0) {
           console.log(`Image ${imageName} does not exist.`);
           throw new NotFoundError(`Image ${imageName} not found`);
@@ -52,9 +50,6 @@ export class ImageService {
         );
 
         console.log('Full image Path', fullImagePath);
-
-        //resize image
-        //check if thumb exists
 
         const processedImagePath: string = path.resolve(
           `${this.imagesDirectoryPath}/${this.thumbDirectoryName}/${imagePath.name}_${width}_${height}${imageExtension}`
@@ -69,7 +64,12 @@ export class ImageService {
         }
 
         //create new image
-        await this.createFileThumb(fullImagePath, processedImagePath);
+        await this.createFileThumb(
+          fullImagePath,
+          width,
+          height,
+          processedImagePath
+        );
         console.log(`Image ${processedImagePath} returned.`);
         return resolve(processedImagePath);
       } catch (error) {
@@ -136,11 +136,15 @@ export class ImageService {
 
   private async createFileThumb(
     imagePath: string,
+    width: number,
+    height: number,
     processedImagePath: string
   ): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        await fsPromises.copyFile(imagePath, processedImagePath);
+        console.log(`Creating ${processedImagePath}.`);
+        //await fsPromises.copyFile(imagePath, processedImagePath);
+        await sharp(imagePath).resize(width, height).toFile(processedImagePath);
         console.log(`File ${processedImagePath} created.`);
         return resolve();
       } catch (error) {
