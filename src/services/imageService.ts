@@ -68,14 +68,13 @@ export class ImageService {
   }
 
   private async fileExists(filePath: string): Promise<boolean> {
-    return new Promise(async (resolve) => {
-      try {
-        await fsPromises.access(filePath, constants.F_OK);
-        return resolve(true);
-      } catch (error) {
-        return resolve(false);
-      }
-    });
+    try {
+      await fsPromises.access(filePath, constants.F_OK);
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
   }
 
   private async getImageToProcess(imageName: string): Promise<string> {

@@ -6,12 +6,12 @@ import { ImageService } from '../../services/imageService';
 const routes = express.Router();
 const imageServiceImpl = new ImageService(`${__dirname}/../../../images`);
 
-routes.get('/', async (req, res) => {
+routes.get('/', async (req: express.Request, res: express.Response) => {
   console.log(req.query);
 
-  const imageName: string = req.query.imagename as string;
-  const width: number = parseInt(req.query.width as string, 10);
-  const height: number = parseInt(req.query.height as string, 10);
+  const imageName = req.query.imagename as string;
+  const width = parseInt(req.query.width as string, 10);
+  const height = parseInt(req.query.height as string, 10);
 
   try {
     const response: string = await imageServiceImpl.processImage(
